@@ -35,10 +35,44 @@ class UI {
         target.remove();
     }
 }
+class Store {
+    getBooks() {
+        let books;
+        if (localStorage.getItem("Books") != null) {
+            books = JSON.parse(localStorage.getItem("Books"));
+        } else {
+            books = [];
+        }
+        return books;
+    }
+    showBooks() {
+        let books = this.getBooks();
+        for (const book of books) {
+            ui.addBook(book);
+        }
+    }
+    storeBook(book) {
+        let books = this.getBooks();
+        books.push(book);
+        localStorage.setItem("Books", JSON.stringify(books));
+    };
+    deleteBook(isbn) {
+        let books = this.getBooks();
+        books.forEach((book, index) => {
+            if (book.isbn == isbn) {
+                books.splice(index, 1)
+            }
+        })
+        localStorage.setItem("Books", JSON.stringify(books));
+
+    };
+
+}
 
 //DOM selectors
 var form = document.querySelector('#book-form');
 var ui = new UI();
+var store = new Store();
 
 
 
@@ -53,6 +87,7 @@ form.addEventListener('submit', (e) => {
     } else {
         var book = new Book(title.value, author.value, isbn.value);
         ui.addBook(book);
+        store.storeBook(book);
         ui.showMsg('Book added successfully', 'success')
         ui.clearInputs(title, author, isbn);
 
@@ -63,8 +98,12 @@ document.querySelector('#book-list').addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-book')) {
         // console.log(e.target.parentElement.parentElement);
         ui.removeBook(e.target.parentElement.parentElement);
+        store.deleteBook(e.target.parentElement.previousElementSibling.textContent);
         ui.showMsg('Book deleted Successfully', 'success')
     }
 
     e.preventDefault();
+})
+document.addEventListener('DOMContentLoaded', (e) => {
+    store.showBooks();
 })
